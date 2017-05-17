@@ -1,0 +1,12 @@
+<body>
+    <script src="../client/LazyLoaderImage.js">
+    </script>
+    <script>
+        const lazyLoadedImageFactory = new LazyLoadedImageFactory()
+        let y = 10
+        for(var i=0;i<6;i++) {
+            lazyLoadedImageFactory.create('stp.jpg',300,y,400,400)
+            y += 410
+        }
+    </script>
+</body>
