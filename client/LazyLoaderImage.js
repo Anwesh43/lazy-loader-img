@@ -19,26 +19,48 @@ class LazyLoaderImage {
         this.image = new Image()
         this.canvas.width = this.w
         this.canvas.height = this.h
-        this.img.style.transform = `translateX(${this.x}px)translateY(${this.y}px)`
+        this.img.style.position = "absolute"
+        this.img.style.left = this.x
+        this.img.style.top = this.y
         document.body.appendChild(this.img)
         this.startRenderLoop()
     }
     startRenderLoop() {
-        setInterval(()=>{
-            this.render()
+        const interval = setInterval(()=>{
+            this.render(()=>{
+                clearInterval(interval)
+            })
         },50)
     }
-    render() {
+    render(cb) {
         this.context.clearRect(0,0,this.w,this.h)
         this.context.fillStyle = "#9E9E9E"
         this.context.fillRect(0,0,this.w,this.h)
         this.circleLoader.draw(this.context,this.w/2,this.h/2,this.w/6)
         this.circleLoader.update()
         if(this.imgLoaded) {
-            this.context.drawImage(this.image,0,0,w,h)
+            this.context.drawImage(this.image,0,0,this.w,this.h)
+            cb()
         }
         this.img.src = this.canvas.toDataURL()
     }
+    canShowImage() {
+        const y = window.scrollY
+        //console.log(this.img.offsetTop)
+        const condition =  this.img.offsetTop<y && !this.imgShown
+        if(condition) {
+            //console.log(this.img.offsetTop)
+        }
+        return condition
+    }
+    setImageSrc() {
+        this.image.src = this.src
+        this.imgShown = true
+        this.img.onload = ()=>{
+            this.imgLoaded = true
+        }
+    }
+
 }
 class CircleLoader  {
     constructor() {
@@ -59,17 +81,6 @@ class CircleLoader  {
         }
         context.stroke()
     }
-    canShowImage() {
-        const y = window.scrollY
-        return this.img.offsetTop >= y && this.img.offsetTop <= y+window.innerHeight && !this.imgShown
-    }
-    setImageSrc() {
-        this.img.src = this.src
-        this.imgShown = true
-        this.img.onload = ()=>{
-            this.imgLoaded = true
-        }
-    }
     update() {
         this.deg += 10
     }
@@ -77,11 +88,13 @@ class CircleLoader  {
 class LazyLoadedImageFactory {
     constructor() {
         this.llImgs = []
+        this.initScrollListener()
     }
     initScrollListener() {
         window.onscroll = () => {
             this.llImgs.forEach((llImg)=>{
                 if(llImg.canShowImage()) {
+
                     llImg.setImageSrc()
                 }
             })
