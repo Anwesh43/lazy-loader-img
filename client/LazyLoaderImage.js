@@ -6,6 +6,7 @@ class LazyLoaderImage {
         this.y = y
         this.w = w
         this.h = h
+        this.imgShown = false
         this.imgLoaded = false
         this.circleLoader = new CircleLoader()
     }
@@ -58,7 +59,37 @@ class CircleLoader  {
         }
         context.stroke()
     }
+    canShowImage() {
+        const y = window.scrollY
+        return this.img.offsetTop >= y && this.img.offsetTop <= y+window.innerHeight && !this.imgShown
+    }
+    setImageSrc() {
+        this.img.src = this.src
+        this.imgShown = true
+        this.img.onload = ()=>{
+            this.imgLoaded = true
+        }
+    }
     update() {
         this.deg += 10
+    }
+}
+class LazyLoadedImageFactory {
+    constructor() {
+        this.llImgs = []
+    }
+    initScrollListener() {
+        window.onscroll = () => {
+            this.llImgs.forEach((llImg)=>{
+                if(llImg.canShowImage()) {
+                    llImg.setImageSrc()
+                }
+            })
+        }
+    }
+    create(src,x,y,w,h) {
+        const llImg = new LazyLoaderImage(src,x,y,w,h)
+        llImg.create()
+        this.llImgs.push(llImg)
     }
 }
